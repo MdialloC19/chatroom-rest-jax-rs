@@ -8,6 +8,7 @@ import javax.ws.rs.ext.Provider;
 
 /**
  * Filtre CORS (Cross-Origin Resource Sharing) pour permettre les requêtes cross-origin.
+ * Recyclé dans l'un des mes projets
  * <p>
  * Cette classe implémente un filtre de réponse JAX-RS qui ajoute les en-têtes CORS nécessaires
  * pour permettre aux clients web d'effectuer des requêtes cross-origin vers l'API REST.

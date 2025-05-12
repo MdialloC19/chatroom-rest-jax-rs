@@ -219,18 +219,31 @@ curl -X POST -H "Content-Type: application/json" -d '{"sender":"alice","content"
 curl -X GET http://localhost:8081/chat/messages
 ```
 
+##📖 Javadoc
+
+La documentation complète de l'API est disponible dans le dossier `docs/javadoc`. Pour la générer :
+
+```bash
+
+ javadoc -d docs/javadoc \
+    -sourcepath src/main/java \
+    -cp "lib/*:target/dependency/*" \
+    -subpackages com.chatroom \
+    -windowtitle "ChatRoom REST API Documentation" \
+    -doctitle "ChatRoom REST API" \
+    -header "ChatRoom REST API" \
+    -author \
+    -version
+
+```
+
 ## Utilisation de l'interface graphique
 
 L'application inclut une interface graphique inspirée de WhatsApp :
 
 1. Démarrez l'application avec `./compile_run.sh`
 2. L'application démarrera le serveur et le client GUI automatiquement
-3. Saisissez votre nom d'utilisateur pour vous connecter
-4. Vous pouvez maintenant envoyer et recevoir des messages
+3. Choisissez le nombre d'instance 
+4. Saisissez votre nom d'utilisateur pour vous connecter
+5. Vous pouvez maintenant envoyer et recevoir des messages
 
-## Prochaines étapes
-
-- Ajouter des fonctionnalités comme les messages privés
-- Ajouter des notifications en temps réel avec Server-Sent Events (SSE)
-- Améliorer la persistance des messages et des utilisateurs
-- Ajouter une gestion des statuts utilisateur (en ligne, absent, etc.)
