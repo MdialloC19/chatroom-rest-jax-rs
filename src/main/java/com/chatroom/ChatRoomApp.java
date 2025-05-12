@@ -10,8 +10,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Classe principale pour lancer l'application de chat
- * Démarre le serveur REST et plusieurs clients pour simuler un groupe WhatsApp
+ * Classe principale pour lancer l'application de chat.
+ * <p>
+ * Cette classe est le point d'entrée principal de l'application. Elle démarre
+ * le serveur REST en arrière-plan et initialise l'interface graphique du client.
+ * L'application suit un modèle client-serveur simple où le serveur gère les
+ * données et expose une API REST, tandis que le client fournit une interface
+ * utilisateur graphique pour interagir avec le serveur.
+ * </p>
+ *
+ * @author ESP-DIC3
+ * @version 1.0
  */
 public class ChatRoomApp {
     
@@ -21,45 +30,40 @@ public class ChatRoomApp {
      * Démarre l'application complète (serveur + clients)
      */
     public static void main(String[] args) {
-        // Configurer le système de logging
+        // Configurer le dossier des logs (crée un dossier 'logs' dans le répertoire de l'application)
+        LogManager.setLogDirectory("./logs");
+        LogManager.setLogFileName("chatroom.log");
         LogManager.configureLogging();
         LOGGER.info("Démarrage de l'application ChatRoom");
         
         try {
-            // Configurer le look and feel
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             
-            // Démarrer le serveur en arrière-plan
             Thread serverThread = new Thread(() -> {
                 try {
-                    // Démarrer le serveur et le garder actif
                     final HttpServer server = RestServer.startServer();
                     LOGGER.info("Serveur REST démarré avec succès sur " + server.getListener("grizzly").getHost() + ":" + server.getListener("grizzly").getPort());
                     System.out.println("Serveur REST démarré avec succès!");
                     System.out.println("Appuyez sur Ctrl+C dans la console pour arrêter le serveur...");
                     
-                    // Attendre indéfiniment (le programme sera arrêté via Ctrl+C)
                     Thread.currentThread().join();
                 } catch (Exception e) {
                     System.err.println("Erreur lors du démarrage du serveur: " + e.getMessage());
                     e.printStackTrace();
                 }
             });
-            serverThread.setDaemon(true); // Cela permettra d'arrêter le thread serveur quand l'application se termine
+            serverThread.setDaemon(true);
             serverThread.start();
             
-            // Attendre que le serveur démarre complètement
             System.out.println("Attente du démarrage du serveur...");
-            Thread.sleep(5000); // Attendre 5 secondes pour s'assurer que le serveur est prêt
+            Thread.sleep(2000);
             
-            // Lancer le client principal
             SwingUtilities.invokeLater(() -> {
                 ChatGUI chatGUI = new ChatGUI();
                 chatGUI.setVisible(true);
                 chatGUI.showLoginDialog();
             });
             
-            // Option pour lancer plusieurs clients (pour simuler un groupe)
             offerMultipleClients();
             
         } catch (Exception e) {
@@ -91,21 +95,17 @@ public class ChatRoomApp {
                         "2"
                 ));
                 
-                // Limiter entre 1 et 3 clients additionnels
                 nbClients = Math.min(Math.max(nbClients, 1), 3);
                 
-                // Lancer les clients additionnels
                 for (int i = 0; i < nbClients; i++) {
                     final int clientIndex = i + 1;
                     SwingUtilities.invokeLater(() -> {
                         ChatGUI chatGUI = new ChatGUI();
-                        // Positionner les fenêtres en cascade
                         chatGUI.setLocation(100 + clientIndex * 50, 100 + clientIndex * 50);
                         chatGUI.setVisible(true);
                         chatGUI.showLoginDialog();
                     });
                     
-                    // Petit délai entre chaque lancement
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {

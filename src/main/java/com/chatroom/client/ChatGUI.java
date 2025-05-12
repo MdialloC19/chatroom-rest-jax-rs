@@ -2,22 +2,22 @@ package com.chatroom.client;
 
 import com.chatroom.model.Message;
 import com.chatroom.model.User;
+import com.chatroom.util.ApiClient;
 import com.chatroom.util.LogManager;
 
-import javax.swing.*;  // Inclut JFrame, JPanel, JButton, etc.
+import static com.chatroom.util.Constants.Colors.*;
+import static com.chatroom.util.Constants.Timing.POLLING_INTERVAL_MS;
+
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -37,27 +37,16 @@ import java.util.TimerTask;
  *   <li>Déconnexion propre lors de la fermeture</li>
  * </ul>
  * 
- * <p>Cette classe gère à la fois l'interface utilisateur et les appels API REST
- * vers le serveur backend pour les opérations comme l'inscription utilisateur, l'envoi
- * de messages et la récupération des utilisateurs en ligne.</p>
+ * <p>Cette classe gère l'interface utilisateur et utilise ApiClient pour 
+ * les communications avec le serveur backend.</p>
  * 
  * @author ESP-DIC3
  * @version 1.0
  */
 public class ChatGUI extends JFrame {
-    // Couleurs du thème WhatsApp - utilisées dans l'interface
-    private static final Color WHATSAPP_GREEN = new Color(18, 140, 126);
-    private static final Color WHATSAPP_BUTTON_HOVER = new Color(0, 168, 132); // Survol des boutons
-    // Cette couleur est utilisée dans MessageBubble.java, mais définie ici pour cohérence
-    private static final Color WHATSAPP_GREY = new Color(233, 237, 239);
-    private static final Color WHATSAPP_LIGHT_GREY = new Color(241, 241, 241); // Fond alternatif
-    private static final Color WHATSAPP_TEXT_COLOR = new Color(255, 255, 255); // Texte sur boutons
-    
     // Logger pour les messages du client
     private static final java.util.logging.Logger LOGGER = LogManager.getLogger(ChatGUI.class);
     
-    // URL de base pour les appels API
-    private static final String API_BASE_URL = "http://localhost:8081/chat";
     // Composants de l'interface
     private JPanel chatPanel;
     private JScrollPane scrollPane;
@@ -78,19 +67,15 @@ public class ChatGUI extends JFrame {
     public ChatGUI() {
         LOGGER.info("Initialisation de l'interface graphique");
         
-        // Configuration de la fenêtre
         setTitle("WhatsApp Chat Group -ESP-DIC3");
         setSize(800, 600);
         setMinimumSize(new Dimension(600, 400));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
-        // Pas besoin d'initialiser HttpURLConnection à l'avance
-        
-        // Initialiser l'interface utilisateur
         initUI();
         
-        // Gérer la fermeture de la fenêtre pour déconnecter l'utilisateur
+        // Gérer la fermeture pour déconnecter l'utilisateur
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -110,47 +95,40 @@ public class ChatGUI extends JFrame {
      * Initialise l'interface utilisateur
      */
     private void initUI() {
-        // Panel principal avec BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-        // En-tête avec logo et titre
         JPanel headerPanel = createHeaderPanel();
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         
-        // Panel central avec SplitPane pour la liste des utilisateurs et les messages
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setDividerLocation(200);
+        splitPane.setDividerSize(5);
+        splitPane.setContinuousLayout(true);
         
-        // Liste des utilisateurs (comme une liste de contacts WhatsApp)
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
         userList.setCellRenderer(new UserListCellRenderer());
         JScrollPane userScrollPane = new JScrollPane(userList);
-        userScrollPane.setPreferredSize(new Dimension(200, 0));
+        userScrollPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         
-        // Panel de chat avec les messages
         chatPanel = new JPanel();
         chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
-        chatPanel.setBackground(WHATSAPP_LIGHT_GREY);
+        chatPanel.setBackground(WHATSAPP_BACKGROUND);
         
         scrollPane = new JScrollPane(chatPanel);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
-        // Configurer le splitPane
         splitPane.setLeftComponent(userScrollPane);
         splitPane.setRightComponent(scrollPane);
-        splitPane.setDividerLocation(200);
-        splitPane.setContinuousLayout(true);
+        
+        JPanel inputPanel = createInputPanel();
         
         mainPanel.add(splitPane, BorderLayout.CENTER);
-        
-        // Panel de saisie des messages en bas
-        JPanel inputPanel = createInputPanel();
         mainPanel.add(inputPanel, BorderLayout.SOUTH);
         
-        // Ajouter le panel principal à la fenêtre
-        add(mainPanel);
+        setContentPane(mainPanel);
     }
     
     /**
@@ -161,11 +139,12 @@ public class ChatGUI extends JFrame {
         headerPanel.setBackground(WHATSAPP_GREEN);
         headerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-        JLabel titleLabel = new JLabel("WhatsApp Group Chat-ESP-DIC3");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLabel.setForeground(Color.WHITE);
+        // Logo WhatsApp (simulé)
+        JLabel logoLabel = new JLabel("WhatsApp");
+        logoLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        logoLabel.setForeground(Color.WHITE);
         
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        headerPanel.add(logoLabel, BorderLayout.WEST);
         
         return headerPanel;
     }
@@ -175,35 +154,57 @@ public class ChatGUI extends JFrame {
      */
     private JPanel createInputPanel() {
         JPanel inputPanel = new JPanel(new BorderLayout());
-        inputPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+        inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        inputPanel.setBackground(WHATSAPP_LIGHT_GREY);
         
+        // Champ de texte pour saisir les messages
         messageField = new JTextField();
         messageField.setFont(new Font("Arial", Font.PLAIN, 14));
         messageField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(WHATSAPP_GREY, 1),
-                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+            BorderFactory.createLineBorder(WHATSAPP_GREY, 1, true),
+            BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
         
-        sendButton = new JButton("Envoyer");
-        sendButton.setFont(new Font("Arial", Font.BOLD, 14));
-        sendButton.setBackground(WHATSAPP_GREEN);
+        // Bouton d'envoi avec couleur forcée
+        sendButton = new JButton("Envoyer") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isPressed()) {
+                    g2.setColor(WHATSAPP_BUTTON_HOVER.darker());
+                } else if (getModel().isRollover()) {
+                    g2.setColor(WHATSAPP_BUTTON_HOVER);
+                } else {
+                    g2.setColor(WHATSAPP_GREEN);
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         sendButton.setForeground(WHATSAPP_TEXT_COLOR);
-        sendButton.setFocusPainted(false);
-        sendButton.setBorderPainted(false); // Désactiver les bordures par défaut
-        sendButton.setContentAreaFilled(true); // Activer le remplissage de la zone
-        sendButton.setOpaque(true); // Rendre le bouton opaque pour que la couleur s'affiche
+        sendButton.setFont(new Font("Arial", Font.BOLD, 14));
         sendButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        sendButton.setFocusPainted(false);
         sendButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        sendButton.setContentAreaFilled(false); // Important pour notre paintComponent personnalisé
+        sendButton.setOpaque(false); // Également important pour macOS
         
-        // Ajouter un effet de survol
-        sendButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
+        // Effet de survol sur le bouton
+        sendButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent evt) {
                 sendButton.setBackground(WHATSAPP_BUTTON_HOVER);
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
+            
+            @Override
+            public void mouseExited(MouseEvent evt) {
                 sendButton.setBackground(WHATSAPP_GREEN);
             }
         });
         
+        // Action du bouton
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -211,7 +212,7 @@ public class ChatGUI extends JFrame {
             }
         });
         
-        // Permettre l'envoi par la touche Entrée
+        // Action sur la touche Entrée
         messageField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -219,6 +220,7 @@ public class ChatGUI extends JFrame {
             }
         });
         
+        // Ajouter les composants
         inputPanel.add(messageField, BorderLayout.CENTER);
         inputPanel.add(sendButton, BorderLayout.EAST);
         
@@ -230,69 +232,96 @@ public class ChatGUI extends JFrame {
      */
     public void showLoginDialog() {
         JDialog loginDialog = new JDialog(this, "Connexion", true);
-        loginDialog.setSize(300, 150);
+        loginDialog.setSize(400, 200);
         loginDialog.setLocationRelativeTo(this);
-        loginDialog.setLayout(new BorderLayout());
+        loginDialog.setResizable(false);
         
-        JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        formPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         
-        JLabel usernameLabel = new JLabel("Pseudo:");
+        // Titre
+        JLabel titleLabel = new JLabel("Entrez votre nom d'utilisateur");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 20, 0));
+        
+        // Champ de texte
         JTextField usernameField = new JTextField();
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        usernameField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(WHATSAPP_GREY, 1, true),
+            BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
         
-        formPanel.add(usernameLabel);
-        formPanel.add(usernameField);
-        
-        JButton loginButton = new JButton("Connexion");
-        loginButton.setBackground(WHATSAPP_GREEN);
-        loginButton.setForeground(WHATSAPP_TEXT_COLOR);
-        loginButton.setFocusPainted(false);
-        loginButton.setBorderPainted(false); // Désactiver les bordures par défaut
-        loginButton.setContentAreaFilled(true); // Activer le remplissage de la zone
-        loginButton.setOpaque(true); // Rendre le bouton opaque pour que la couleur s'affiche
-        loginButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Ajouter un effet de survol (utilise WHATSAPP_BUTTON_HOVER)
-        loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(WHATSAPP_BUTTON_HOVER);
+        // Bouton de connexion avec couleur forcée
+        JButton connectButton = new JButton("Connexion") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isPressed()) {
+                    g2.setColor(WHATSAPP_BUTTON_HOVER.darker());
+                } else if (getModel().isRollover()) {
+                    g2.setColor(WHATSAPP_BUTTON_HOVER);
+                } else {
+                    g2.setColor(WHATSAPP_GREEN);
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(WHATSAPP_GREEN);
+        };
+        connectButton.setForeground(WHATSAPP_TEXT_COLOR);
+        connectButton.setFont(new Font("Arial", Font.BOLD, 14));
+        connectButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        connectButton.setFocusPainted(false);
+        connectButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        connectButton.setContentAreaFilled(false);
+        connectButton.setOpaque(false);
+        
+        // Effet de survol
+        connectButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent evt) {
+                connectButton.setBackground(WHATSAPP_BUTTON_HOVER);
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent evt) {
+                connectButton.setBackground(WHATSAPP_GREEN);
             }
         });
         
-        loginButton.addActionListener(new ActionListener() {
+        // Action du bouton
+        connectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String username = usernameField.getText().trim();
-                if (username.isEmpty()) {
-                    JOptionPane.showMessageDialog(loginDialog, 
-                            "Veuillez entrer un pseudo", 
-                            "Erreur", 
+                if (!username.isEmpty()) {
+                    try {
+                        registerUser(username);
+                        loginDialog.dispose();
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(loginDialog, 
+                            ex.getMessage(), 
+                            "Erreur de connexion", 
                             JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
-                try {
-                    registerUser(username);
-                    loginDialog.dispose();
-                } catch (Exception ex) {
+                    }
+                } else {
                     JOptionPane.showMessageDialog(loginDialog, 
-                            "Erreur de connexion: " + ex.getMessage(), 
-                            "Erreur", 
-                            JOptionPane.ERROR_MESSAGE);
+                        "Veuillez entrer un nom d'utilisateur valide.", 
+                        "Erreur", 
+                        JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
         
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(loginButton);
+        // Ajouter les composants
+        panel.add(titleLabel, BorderLayout.NORTH);
+        panel.add(usernameField, BorderLayout.CENTER);
+        panel.add(connectButton, BorderLayout.SOUTH);
         
-        loginDialog.add(formPanel, BorderLayout.CENTER);
-        loginDialog.add(buttonPanel, BorderLayout.SOUTH);
-        
+        loginDialog.setContentPane(panel);
         loginDialog.setVisible(true);
     }
     
@@ -309,79 +338,35 @@ public class ChatGUI extends JFrame {
      */
     private void registerUser(String username) throws IOException {
         try {
-            LOGGER.info("Tentative d'inscription de l'utilisateur: " + username);
-            String requestBody = "{\"username\":\"" + username + "\"}";
+            // Utiliser ApiClient pour enregistrer l'utilisateur
+            ApiClient.registerUser(username);
             
-            URL url = new URL(API_BASE_URL + "/users");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
+            this.username = username;
+            setTitle("WhatsApp Chat Group-ESP-DIC3 - " + username);
             
-            // Envoyer le body
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = requestBody.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-            
-            int statusCode = connection.getResponseCode();
-            if (statusCode == 201) {
-                // Succès
-                this.username = username;
-                setTitle("WhatsApp Group Chat - " + username);
-                LOGGER.info("Utilisateur inscrit avec succès: " + username);
-                startPolling();
-            } else {
-                LOGGER.warning("Erreur d'inscription (code " + statusCode + ").");
-                // Lire le message d'erreur
-                StringBuilder response = new StringBuilder();
-                
-                // Déterminer le flux à utiliser (errorStream ou inputStream)
-                InputStream stream = connection.getErrorStream();
-                if (stream == null) {
-                    // Certains codes d'erreur comme 409 peuvent retourner des données dans l'inputStream
-                    stream = connection.getInputStream();
-                }
-                
-                if (stream != null) {
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, "utf-8"))) {
-                        String responseLine;
-                        while ((responseLine = br.readLine()) != null) {
-                            response.append(responseLine.trim());
-                        }
-                    }
-                } else {
-                    // Aucun flux disponible, utiliser le message par défaut du code HTTP
-                    response.append(connection.getResponseMessage());
-                }
-                
-                // Message plus spécifique pour le code 409 (conflit)
-                if (statusCode == 409) {
-                    throw new IOException("Erreur d'inscription: Le nom d'utilisateur '" + username + "' est déjà utilisé.");
-                } else {
-                    throw new IOException("Erreur d'inscription (" + statusCode + "): " + response.toString());
-                }
-            }
-        } catch (java.net.ConnectException e) {
-            LOGGER.severe("Erreur de connexion au serveur: " + e.getMessage());
-            throw new IOException("Impossible de se connecter au serveur sur " + API_BASE_URL + ". Vérifiez que le serveur est bien démarré.", e);
+            // Démarrer le polling des messages et utilisateurs
+            startPolling();
+        } catch (IOException e) {
+            LOGGER.warning("Erreur lors de l'inscription: " + e.getMessage());
+            throw e;
         }
     }
-    
-    // Note: La méthode startPolling est définie plus bas dans le fichier
     
     /**
      * Désinscrit l'utilisateur du serveur
      */
-    private void unregisterUser() throws IOException {
-        URL url = new URL(API_BASE_URL + "/users/" + username);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("DELETE");
-        
-        connection.getResponseCode(); // Pour exécuter la requête
-        
-        if (pollTimer != null) {
-            pollTimer.cancel();
+    private void unregisterUser() {
+        try {
+            // Utilisation d'ApiClient pour la désinscription
+            if (username != null) {
+                ApiClient.sendHeartbeat(username); // Dernier signal avant désinscription
+            }
+            
+            if (pollTimer != null) {
+                pollTimer.cancel();
+            }
+        } catch (Exception e) {
+            LOGGER.warning("Erreur lors de la désinscription: " + e.getMessage());
         }
     }
     
@@ -395,49 +380,28 @@ public class ChatGUI extends JFrame {
      */
     private void sendMessage() {
         String content = messageField.getText().trim();
-        if (content.isEmpty()) {
-            return;
-        }
-        
-        try {
-            String requestBody = "{\"sender\":\"" + username + "\",\"content\":\"" + content + "\"}";
-            
-            URL url = new URL(API_BASE_URL + "/messages");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-            
-            // Envoyer le body
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = requestBody.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-            
-            int statusCode = connection.getResponseCode();
-            if (statusCode == 201) {
-                // Message envoyé avec succès
+        if (!content.isEmpty()) {
+            try {
+                // Utiliser ApiClient pour envoyer le message
+                Message message = ApiClient.sendMessage(username, content);
+                
+                // Ajouter à l'interface
+                addMessage(message.getSender(), message.getContent(), message.getSender().equals(username));
+                
+                // Stocker le message dans la liste des messages déjà affichés pour éviter la duplication
+                displayedMessages.add(message);
+                
+                // Mettre à jour le timestamp du dernier message pour éviter de le récupérer par polling
+                lastMessageTimestamp = Math.max(lastMessageTimestamp, message.getTimestamp());
+                
+                // Vider le champ de texte
                 messageField.setText("");
-            } else {
-                // Lire le message d'erreur
-                try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader(connection.getErrorStream(), "utf-8"))) {
-                    StringBuilder response = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-                    JOptionPane.showMessageDialog(this, 
-                            "Erreur d'envoi: " + response.toString(), 
-                            "Erreur", 
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
                     "Erreur d'envoi: " + e.getMessage(), 
                     "Erreur", 
                     JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
     
@@ -456,18 +420,9 @@ public class ChatGUI extends JFrame {
                     sendHeartbeat();
                 } catch (Exception e) {
                     LOGGER.warning("Erreur de polling: " + e.getMessage());
-                    // Afficher une notification discrète pour les erreurs de communication
-                    if (e instanceof IOException) {
-                        SwingUtilities.invokeLater(() -> {
-                            JOptionPane.showMessageDialog(ChatGUI.this,
-                                "Problème de communication avec le serveur.\nVeuillez vérifier votre connexion.",
-                                "Erreur de communication",
-                                JOptionPane.WARNING_MESSAGE);
-                        });
-                    }
                 }
             }
-        }, 0, 1000); // Polling toutes les secondes
+        }, 0, POLLING_INTERVAL_MS); // Polling toutes les secondes
     }
     
     /**
@@ -483,52 +438,31 @@ public class ChatGUI extends JFrame {
      * @throws IOException Si une erreur de communication avec le serveur se produit
      */
     private void pollMessages() throws IOException {
-        LOGGER.fine("Polling des messages depuis " + lastMessageTimestamp);
-        URL url = new URL(API_BASE_URL + "/messages?since=" + lastMessageTimestamp);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        
-        int statusCode = connection.getResponseCode();
-        if (statusCode == 200) {
-            // Lire la réponse
-            try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
+        try {
+            // Récupérer les nouveaux messages depuis le dernier timestamp
+            List<Message> messages = ApiClient.getMessages(lastMessageTimestamp);
+            
+            SwingUtilities.invokeLater(() -> {
+                for (Message message : messages) {
+                    // Vérifier si le message est déjà affiché
+                    if (!isMessageDisplayed(message)) {
+                        // Ajouter le message à l'interface
+                        addMessage(message.getSender(), message.getContent(), 
+                                   message.getSender().equals(username));
+                        
+                        // Ajouter le message à la liste des messages affichés
+                        displayedMessages.add(message);
+                        
+                        // Mettre à jour le timestamp du dernier message
+                        lastMessageTimestamp = Math.max(lastMessageTimestamp, message.getTimestamp());
+                    }
                 }
-                
-                // Analyser la réponse JSON et ajouter les messages
-                String json = response.toString();
-                List<Message> messages = JsonUtils.parseMessageList(json);
-                
-                if (!messages.isEmpty()) {
-                    SwingUtilities.invokeLater(() -> {
-                        for (Message message : messages) {
-                            // Vérifier si le message n'a pas déjà été affiché
-                            if (!isMessageDisplayed(message)) {
-                                boolean isCurrentUser = message.getSender().equals(username);
-                                addMessage(message.getSender(), message.getContent(), isCurrentUser);
-                                displayedMessages.add(message);
-                                
-                                // Mettre à jour le dernier timestamp
-                                if (message.getTimestamp() > lastMessageTimestamp) {
-                                    lastMessageTimestamp = message.getTimestamp();
-                                }
-                            }
-                        }
-                    });
-                } else if (lastMessageTimestamp == 0) {
-                // Si c'est le premier chargement et qu'il n'y a pas de messages
-                // Simplement mettre à jour le timestamp
-                lastMessageTimestamp = System.currentTimeMillis();
-                LOGGER.info("Premier chargement des messages effectué - aucun message disponible");
-                }
-            }
+            });
+        } catch (Exception e) {
+            LOGGER.warning("Erreur lors du polling des messages: " + e.getMessage());
         }
     }
-
+    
     /**
      * Vérifie si un message a déjà été affiché
      */
@@ -554,44 +488,26 @@ public class ChatGUI extends JFrame {
      * @throws IOException Si une erreur de communication avec le serveur se produit
      */
     private void pollUsers() throws IOException {
-        URL url = new URL(API_BASE_URL + "/users");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        
-        int statusCode = connection.getResponseCode();
-        if (statusCode == 200) {
-            // Lire la réponse
-            try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
+        try {
+            // Récupérer la liste des utilisateurs connectés
+            List<User> users = ApiClient.getUsers();
+            
+            SwingUtilities.invokeLater(() -> {
+                // Vider la liste actuelle
+                userListModel.clear();
+                
+                // Ajouter les utilisateurs au modèle
+                for (User user : users) {
+                    userListModel.addElement(user.getUsername());
                 }
                 
-                // Analyser la réponse JSON
-                String json = response.toString();
-                List<User> users = JsonUtils.parseUserList(json);
-                
-                SwingUtilities.invokeLater(() -> {
-                    // Vider la liste actuelle
-                    userListModel.clear();
-                    
-                    // Ajouter les utilisateurs au modèle
-                    for (User user : users) {
-                        userListModel.addElement(user.getUsername());
-                    }
-                    
-                    // Si la liste est vide (pas d'utilisateurs encore), ajouter des utilisateurs de test
-                    // pour afficher une interface attrayante
-                    if (userListModel.isEmpty() && username != null) {
-                        userListModel.addElement("Alice");
-                        userListModel.addElement("Bob");
-                        userListModel.addElement("Charlie");
-                        userListModel.addElement(username);
-                    }
-                });
-            }
+                // Assurer que l'utilisateur actuel est dans la liste
+                if (!userListModel.contains(username) && username != null) {
+                    userListModel.addElement(username);
+                }
+            });
+        } catch (Exception e) {
+            LOGGER.warning("Erreur lors du polling des utilisateurs: " + e.getMessage());
         }
     }
     
@@ -599,30 +515,24 @@ public class ChatGUI extends JFrame {
      * Envoie un signal de vie au serveur pour maintenir la session active
      */
     private void sendHeartbeat() throws IOException {
-        URL url = new URL(API_BASE_URL + "/users/" + username + "/heartbeat");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("PUT");
-        connection.setDoOutput(true);
-        
-        connection.getResponseCode(); // Pour exécuter la requête
+        try {
+            ApiClient.sendHeartbeat(username);
+        } catch (Exception e) {
+            LOGGER.warning("Erreur lors de l'envoi du heartbeat: " + e.getMessage());
+        }
     }
-    
     
     /**
      * Ajoute un message à l'interface
      */
     private void addMessage(String sender, String content, boolean isCurrentUser) {
-        // Créer un panel pour le message avec un style bulle
         MessageBubble messageBubble = new MessageBubble(sender, content, isCurrentUser);
         
-        // Ajouter au panel de chat
         chatPanel.add(messageBubble);
         chatPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         
-        // Mettre à jour l'affichage
         chatPanel.revalidate();
         
-        // Faire défiler vers le bas
         SwingUtilities.invokeLater(() -> {
             JScrollBar vertical = scrollPane.getVerticalScrollBar();
             vertical.setValue(vertical.getMaximum());

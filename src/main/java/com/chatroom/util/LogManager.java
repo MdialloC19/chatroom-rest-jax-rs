@@ -28,6 +28,10 @@ public class LogManager {
     // Le logger racine
     private static final Logger ROOT_LOGGER = Logger.getLogger("");
     
+    // Chemin par défaut pour les fichiers de log
+    private static String LOG_DIRECTORY = "./logs/";
+    private static String LOG_FILE_NAME = "chatroom.log";
+    
     // Formateur personnalisé pour la console (avec couleurs)
     private static class ColorConsoleFormatter extends Formatter {
         private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -114,6 +118,30 @@ public class LogManager {
     }
     
     /**
+     * Définit le dossier où seront stockés les fichiers de log
+     * @param directory Chemin du dossier pour les logs
+     */
+    public static void setLogDirectory(String directory) {
+        if (directory != null && !directory.isEmpty()) {
+            // S'assurer que le chemin se termine par un séparateur
+            if (!directory.endsWith("/") && !directory.endsWith("\\")) {
+                directory += "/";
+            }
+            LOG_DIRECTORY = directory;
+        }
+    }
+    
+    /**
+     * Définit le nom du fichier de log
+     * @param fileName Nom du fichier de log (sans le chemin)
+     */
+    public static void setLogFileName(String fileName) {
+        if (fileName != null && !fileName.isEmpty()) {
+            LOG_FILE_NAME = fileName;
+        }
+    }
+    
+    /**
      * Configure le système de logging pour l'application
      */
     public static void configureLogging() {
@@ -134,10 +162,19 @@ public class LogManager {
             
             // Créer et configurer le handler pour les fichiers
             try {
-                FileHandler fileHandler = new FileHandler("chatroom.log", 5 * 1024 * 1024, 3, true);
+                // Créer le dossier des logs s'il n'existe pas
+                java.io.File logDir = new java.io.File(LOG_DIRECTORY);
+                if (!logDir.exists()) {
+                    logDir.mkdirs();
+                }
+                
+                String logFilePath = LOG_DIRECTORY + LOG_FILE_NAME;
+                FileHandler fileHandler = new FileHandler(logFilePath, 5 * 1024 * 1024, 3, true);
                 fileHandler.setFormatter(new FileFormatter());
                 fileHandler.setLevel(Level.ALL);
                 ROOT_LOGGER.addHandler(fileHandler);
+                
+                System.out.println("Fichiers de log créés dans: " + new java.io.File(logFilePath).getAbsolutePath());
             } catch (IOException e) {
                 // Utiliser la console si impossible de créer le fichier
                 System.err.println("Impossible de créer le fichier de log: " + e.getMessage());

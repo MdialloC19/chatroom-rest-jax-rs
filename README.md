@@ -1,6 +1,6 @@
 # Chatroom REST avec JAX-RS
 
-Une application de chatroom en temps réel utilisant une API RESTful avec JAX-RS et une interface graphique Java Swing.
+Une application de chatroom en temps réel utilisant une API RESTful avec JAX-RS et une interface graphique Java Swing style WhatsApp. Cette application permet aux utilisateurs de s'enregistrer, d'envoyer des messages et de voir en temps réel les autres utilisateurs connectés.
 
 ## Structure du projet
 
@@ -30,6 +30,7 @@ chatroom-rest/
                         └── LogManager.java
 ├── pom.xml                 # Configuration Maven et dépendances
 ├── target/
+├── logs/                # Dossier de logs configurable
 └── ...
 ```
 
@@ -43,6 +44,22 @@ chatroom-rest/
 ## Architecture du projet
 
 Le projet est construit selon une architecture client-serveur avec une API REST, suivant les principes suivants :
+
+### Améliorations récentes
+
+1. **Amélioration de l'UI :**
+   - Adoption d'un style WhatsApp avec couleur verte caractéristique (`WHATSAPP_GREEN`)
+   - Personnalisation des boutons avec rendu graphique optimisé
+   - Suppression des utilisateurs fictifs de test
+
+2. **Organisation du code :**
+   - Création de la classe `Constants` pour centraliser les paramètres de configuration
+   - Mise en place de la classe `ApiClient` pour toutes les interactions avec le serveur
+   - Nettoyage des commentaires superflus pour un code plus lisible
+
+3. **Gestion des logs :**
+   - Configuration du dossier des logs personnalisable
+   - Amélioration du formatage des logs avec des couleurs en console
 
 ### Architecture générale
 
@@ -83,9 +100,9 @@ Le projet est construit selon une architecture client-serveur avec une API REST,
 ### Couches logicielles
 
 1. **Couche présentation** (Frontend)
-   - Interface graphique Swing qui imite WhatsApp
+   - Interface graphique Swing qui imite WhatsApp avec la couleur verte authentique
    - Composants graphiques personnalisés (MessageBubble, UserListCellRenderer)
-   - Gestion des événements utilisateur
+   - Affichage des bulles de messages avec distinction utilisateur/autres
 
 2. **Couche services** (API)
    - Endpoints REST (ChatResource)
@@ -98,7 +115,24 @@ Le projet est construit selon une architecture client-serveur avec une API REST,
 
 4. **Couche infrastructure**
    - Serveur HTTP Grizzly (RestServer)
-   - Utilitaires (LogManager)
+   - Utilitaires (LogManager, ApiClient, Constants)
+   - Gestion configurable des logs
+
+## Exécution du projet
+
+Le projet peut être exécuté de deux façons :
+
+1. **Compilation et exécution avec le script :**
+   ```
+   ./compile_run.sh
+   ```
+
+2. **Avec Maven :**
+   ```
+   mvn clean compile exec:java
+   ```
+
+Une fois l'application démarrée, le serveur REST s'initialise automatiquement et l'interface graphique s'ouvre. Vous pouvez alors créer plusieurs instances du client pour simuler une conversation de groupe.
 
 ## Fonctionnalités implémentées
 

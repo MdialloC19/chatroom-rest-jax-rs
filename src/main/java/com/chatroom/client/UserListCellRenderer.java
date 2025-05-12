@@ -33,18 +33,14 @@ public class UserListCellRenderer extends DefaultListCellRenderer {
             panel.setBackground(Color.WHITE);
         }
         
-        // Créer un label pour l'image de profil
         JLabel avatarLabel = createAvatarLabel(value.toString());
         
-        // Créer un panel pour le nom et le statut
         JPanel infoPanel = new JPanel(new GridLayout(2, 1));
         infoPanel.setOpaque(false);
         
-        // Nom d'utilisateur
         JLabel nameLabel = new JLabel(value.toString());
         nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
         
-        // Statut (en ligne)
         JLabel statusLabel = new JLabel("En ligne");
         statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         statusLabel.setForeground(Color.GRAY);
@@ -52,7 +48,6 @@ public class UserListCellRenderer extends DefaultListCellRenderer {
         infoPanel.add(nameLabel);
         infoPanel.add(statusLabel);
         
-        // Ajouter les composants au panel principal
         panel.add(avatarLabel, BorderLayout.WEST);
         panel.add(infoPanel, BorderLayout.CENTER);
         
@@ -69,11 +64,9 @@ public class UserListCellRenderer extends DefaultListCellRenderer {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Dessiner le cercle
                 g2.setColor(WHATSAPP_GREEN);
                 g2.fillOval(0, 0, getWidth(), getHeight());
                 
-                // Dessiner l'initiale
                 g2.setColor(Color.WHITE);
                 g2.setFont(new Font("Arial", Font.BOLD, 16));
                 

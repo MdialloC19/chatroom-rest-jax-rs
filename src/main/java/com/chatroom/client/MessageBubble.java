@@ -51,7 +51,6 @@ public class MessageBubble extends JPanel {
         setLayout(new BorderLayout());
         setMaximumSize(new Dimension(400, 1000));
         
-        // Pour aligner les messages à droite (utilisateur actuel) ou à gauche (autres)
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
         
@@ -76,7 +75,6 @@ public class MessageBubble extends JPanel {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Remplir avec la couleur de fond
                 g2d.setColor(isCurrentUser ? WHATSAPP_LIGHT_GREEN : WHATSAPP_GREY);
                 
                 RoundRectangle2D.Double shape = new RoundRectangle2D.Double(
@@ -92,7 +90,6 @@ public class MessageBubble extends JPanel {
         bubblePanel.setBorder(new EmptyBorder(8, 12, 8, 12));
         bubblePanel.setLayout(new BoxLayout(bubblePanel, BoxLayout.Y_AXIS));
         
-        // Ajouter le nom de l'expéditeur (sauf pour l'utilisateur actuel)
         if (!isCurrentUser) {
             JLabel senderLabel = new JLabel(sender);
             senderLabel.setFont(new Font("Arial", Font.BOLD, 12));
@@ -101,7 +98,6 @@ public class MessageBubble extends JPanel {
             bubblePanel.add(senderLabel);
         }
         
-        // Ajouter le contenu du message
         JTextArea contentArea = new JTextArea(content);
         contentArea.setEditable(false);
         contentArea.setWrapStyleWord(true);
@@ -112,7 +108,6 @@ public class MessageBubble extends JPanel {
         contentArea.setAlignmentX(Component.LEFT_ALIGNMENT);
         bubblePanel.add(contentArea);
         
-        // Ajouter l'horodatage
         JLabel timeLabel = new JLabel(formatTime(timestamp));
         timeLabel.setFont(new Font("Arial", Font.PLAIN, 11));
         timeLabel.setForeground(TIME_COLOR);
