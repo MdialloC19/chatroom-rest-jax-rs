@@ -23,15 +23,17 @@ chatroom-rest/
                     │   └── CORSFilter.java
                     │── server/           # Serveur d'application
                     │   └── RestServer.java
-                    │── client/           # Client avec interface graphique
+                    └── client/           # Client avec interface graphique
                     │   │── ChatGUI.java
-                    │   └── UserListCellRenderer.java
+                    │   │── UserListCellRenderer.java
+                    │   └── MessageBubble.java       # Composant pour affichage des messages
                     └── util/             # Utilitaires
-                        └── LogManager.java
+                        │── LogManager.java         # Gestion des logs avec configuration du dossier
+                        │── ApiClient.java          # Client API centralisé pour les appels REST
+                        └── Constants.java          # Constantes centralisées (serveur, couleurs)
 ├── pom.xml                 # Configuration Maven et dépendances
-├── target/
-├── logs/                # Dossier de logs configurable
-└── ...
+├── .gitignore              # Configuration des fichiers ignorés par Git
+└── logs/                   # Dossier de logs configurable
 ```
 
 ## Dépendances principales
@@ -74,8 +76,8 @@ Le projet est construit selon une architecture client-serveur avec une API REST,
                                                   |
                                            +-------------------+
                                            |                   |
-                                           |  Modèles de données |
-                                           |  Gestion état     |
+                                           |Modèles de données |
+                                           | Gestion état     |
                                            |                   |
                                            +-------------------+
 ```
@@ -157,7 +159,7 @@ Une fois l'application démarrée, le serveur REST s'initialise automatiquement 
 Le projet utilise un script shell pour la compilation et l'exécution sans avoir besoin de Maven avec les IDE souvent les serveurs refuse de démarré correctement.  Donc soit on fias une compilation avec le terminal avec la commande :
 
 ```bash
-javac -d target src/main/java/com/chatroom/*.java src/main/java/com/chatroom/model/*.java src/main/java/com/chatroom/rest/*.java src/main/java/com/chatroom/server/*.java src/main/java/com/chatroom/client/*.java src/main/java/com/chatroom/util/*.java Pour démarrer l'application manuellement :
+javac -d target src/main/java/com/chatroom/*.java src/main/java/com/chatroom/model/*.java src/main/java/com/chatroom/rest/*.java src/main/java/com/chatroom/server/*.java src/main/java/com/chatroom/client/*.java src/main/java/com/chatroom/util/*.java 
 ```
 
 puis on peut démarrer l'application avec la commande : 

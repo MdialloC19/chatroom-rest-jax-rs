@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.chatroom"},{"l":"com.chatroom.client"},{"l":"com.chatroom.model"},{"l":"com.chatroom.rest"},{"l":"com.chatroom.server"},{"l":"com.chatroom.util"}];updateSearchResults();

@@ -18,7 +18,7 @@ public class User {
     private String username;
     private long lastActive;
 
-    // Constructeur par défaut nécessaire pour Jackson
+    
     public User() {
         this.lastActive = System.currentTimeMillis();
     }

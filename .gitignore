@@ -45,6 +45,7 @@ buildNumber.properties
 # Fichiers temporaires
 temp/
 tmp/
+target
 *.tmp
 *.bak
 

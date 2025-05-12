@@ -30,7 +30,7 @@ public class ChatRoomApp {
      * Démarre l'application complète (serveur + clients)
      */
     public static void main(String[] args) {
-        // Configurer le dossier des logs (crée un dossier 'logs' dans le répertoire de l'application)
+       
         LogManager.setLogDirectory("./logs");
         LogManager.setLogFileName("chatroom.log");
         LogManager.configureLogging();

@@ -16,7 +16,7 @@ public class Message {
     private String content;
     private long timestamp;
 
-    // Constructeur par défaut nécessaire pour Jackson
+   
     public Message() {
         this.timestamp = System.currentTimeMillis();
     }

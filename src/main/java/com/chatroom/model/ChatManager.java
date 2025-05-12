@@ -25,8 +25,7 @@ import java.util.stream.Collectors;
  */
 public class ChatManager {
     private static final ChatManager instance = new ChatManager();
-    
-    // Utilisations de collections thread-safe pour la concurrence
+   
     private final Map<String, User> users = new ConcurrentHashMap<>();
     private final List<Message> messages = new CopyOnWriteArrayList<>();
     
@@ -50,7 +49,7 @@ public class ChatManager {
         User user = new User(username);
         users.put(username, user);
         
-        // Ajouter un message système pour annoncer l'arrivée
+       
         addSystemMessage(username + " a rejoint la chatroom");
         
         return user;
@@ -77,7 +76,7 @@ public class ChatManager {
     public void removeUser(String username) {
         User user = users.remove(username);
         if (user != null) {
-            // Ajouter un message système pour annoncer le départ
+          
             addSystemMessage(username + " a quitté la chatroom");
         }
     }
@@ -90,7 +89,7 @@ public class ChatManager {
      */
     public Message addMessage(String sender, String content) {
         if (!userExists(sender)) {
-            return null; // L'utilisateur n'existe pas
+            return null;
         }
         
         Message message = new Message(sender, content);

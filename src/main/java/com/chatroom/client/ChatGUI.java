@@ -44,10 +44,10 @@ import java.util.TimerTask;
  * @version 1.0
  */
 public class ChatGUI extends JFrame {
-    // Logger pour les messages du client
+   
     private static final java.util.logging.Logger LOGGER = LogManager.getLogger(ChatGUI.class);
     
-    // Composants de l'interface
+   
     private JPanel chatPanel;
     private JScrollPane scrollPane;
     private JTextField messageField;
@@ -55,7 +55,7 @@ public class ChatGUI extends JFrame {
     private JList<String> userList;
     private DefaultListModel<String> userListModel;
     
-    // État du client
+   
     private String username;
     private long lastMessageTimestamp = 0;
     private List<Message> displayedMessages = new ArrayList<>();
@@ -139,8 +139,8 @@ public class ChatGUI extends JFrame {
         headerPanel.setBackground(WHATSAPP_GREEN);
         headerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-        // Logo WhatsApp (simulé)
-        JLabel logoLabel = new JLabel("WhatsApp");
+        
+        JLabel logoLabel = new JLabel("WhatsApp-GROUP-ESP-DIC3");
         logoLabel.setFont(new Font("Arial", Font.BOLD, 18));
         logoLabel.setForeground(Color.WHITE);
         
@@ -157,7 +157,7 @@ public class ChatGUI extends JFrame {
         inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         inputPanel.setBackground(WHATSAPP_LIGHT_GREY);
         
-        // Champ de texte pour saisir les messages
+       
         messageField = new JTextField();
         messageField.setFont(new Font("Arial", Font.PLAIN, 14));
         messageField.setBorder(BorderFactory.createCompoundBorder(
@@ -165,7 +165,7 @@ public class ChatGUI extends JFrame {
             BorderFactory.createEmptyBorder(8, 8, 8, 8)
         ));
         
-        // Bouton d'envoi avec couleur forcée
+       
         sendButton = new JButton("Envoyer") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -188,8 +188,8 @@ public class ChatGUI extends JFrame {
         sendButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         sendButton.setFocusPainted(false);
         sendButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        sendButton.setContentAreaFilled(false); // Important pour notre paintComponent personnalisé
-        sendButton.setOpaque(false); // Également important pour macOS
+        sendButton.setContentAreaFilled(false);
+        sendButton.setOpaque(false); 
         
         // Effet de survol sur le bouton
         sendButton.addMouseListener(new MouseAdapter() {
@@ -344,7 +344,7 @@ public class ChatGUI extends JFrame {
             this.username = username;
             setTitle("WhatsApp Chat Group-ESP-DIC3 - " + username);
             
-            // Démarrer le polling des messages et utilisateurs
+           
             startPolling();
         } catch (IOException e) {
             LOGGER.warning("Erreur lors de l'inscription: " + e.getMessage());
@@ -357,7 +357,7 @@ public class ChatGUI extends JFrame {
      */
     private void unregisterUser() {
         try {
-            // Utilisation d'ApiClient pour la désinscription
+         
             if (username != null) {
                 ApiClient.sendHeartbeat(username); // Dernier signal avant désinscription
             }
@@ -382,19 +382,19 @@ public class ChatGUI extends JFrame {
         String content = messageField.getText().trim();
         if (!content.isEmpty()) {
             try {
-                // Utiliser ApiClient pour envoyer le message
+               
                 Message message = ApiClient.sendMessage(username, content);
                 
-                // Ajouter à l'interface
+               
                 addMessage(message.getSender(), message.getContent(), message.getSender().equals(username));
                 
-                // Stocker le message dans la liste des messages déjà affichés pour éviter la duplication
+               
                 displayedMessages.add(message);
                 
-                // Mettre à jour le timestamp du dernier message pour éviter de le récupérer par polling
+              
                 lastMessageTimestamp = Math.max(lastMessageTimestamp, message.getTimestamp());
                 
-                // Vider le champ de texte
+              
                 messageField.setText("");
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, 
@@ -439,21 +439,19 @@ public class ChatGUI extends JFrame {
      */
     private void pollMessages() throws IOException {
         try {
-            // Récupérer les nouveaux messages depuis le dernier timestamp
+          
             List<Message> messages = ApiClient.getMessages(lastMessageTimestamp);
             
             SwingUtilities.invokeLater(() -> {
                 for (Message message : messages) {
-                    // Vérifier si le message est déjà affiché
+                    
                     if (!isMessageDisplayed(message)) {
-                        // Ajouter le message à l'interface
+                       
                         addMessage(message.getSender(), message.getContent(), 
                                    message.getSender().equals(username));
                         
-                        // Ajouter le message à la liste des messages affichés
+                       
                         displayedMessages.add(message);
-                        
-                        // Mettre à jour le timestamp du dernier message
                         lastMessageTimestamp = Math.max(lastMessageTimestamp, message.getTimestamp());
                     }
                 }
@@ -493,15 +491,15 @@ public class ChatGUI extends JFrame {
             List<User> users = ApiClient.getUsers();
             
             SwingUtilities.invokeLater(() -> {
-                // Vider la liste actuelle
+              
                 userListModel.clear();
                 
-                // Ajouter les utilisateurs au modèle
+             
                 for (User user : users) {
                     userListModel.addElement(user.getUsername());
                 }
                 
-                // Assurer que l'utilisateur actuel est dans la liste
+                
                 if (!userListModel.contains(username) && username != null) {
                     userListModel.addElement(username);
                 }
@@ -543,11 +541,11 @@ public class ChatGUI extends JFrame {
      * Point d'entrée principal
      */
     public static void main(String[] args) {
-        // Configurer le système de logging
+       
         LogManager.configureLogging();
         
         try {
-            // Utiliser le look and feel du système
+         
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             LOGGER.info("Client ChatGUI démarré avec look and feel système");
         } catch (Exception e) {

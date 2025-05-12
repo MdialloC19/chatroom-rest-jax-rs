@@ -10,8 +10,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.chatroom.util.Constants.Server.BASE_URI;
+import static com.chatroom.util.Constants.Timing.USER_EXPIRY_SECONDS;
 
 /**
  * Serveur REST principal qui démarre le serveur HTTP Grizzly et enregistre l'application JAX-RS.
@@ -34,11 +38,8 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public class RestServer {
-    // Base URI du serveur
-    public static final String BASE_URI = "http://localhost:8081/";
-    
-    // Temps d'inactivité maximum pour un utilisateur (15 minutes)
-    private static final long MAX_INACTIVE_TIME = 15 * 60 * 1000;
+ 
+    private static final long MAX_INACTIVE_TIME = TimeUnit.SECONDS.toMillis(USER_EXPIRY_SECONDS);
     
     // Logger pour les messages du serveur
     private static final Logger LOGGER = LogManager.getLogger(RestServer.class);
@@ -67,10 +68,10 @@ public class RestServer {
     public static void main(String[] args) throws IOException {
         LOGGER.info("Démarrage du serveur REST...");
         
-        // Démarrer le serveur HTTP
+       
         final HttpServer server = startServer();
         
-        // Configurer un nettoyage périodique des utilisateurs inactifs
+       
         LOGGER.info("Configuration du nettoyage des utilisateurs inactifs");
         Timer timer = new Timer(true);
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -87,7 +88,7 @@ public class RestServer {
             }
         }, 60000, 60000); // Exécuter toutes les minutes
         
-        // Afficher un message de démarrage
+       
         String serverUrl = BASE_URI + "api/chat";
         LOGGER.info("Serveur REST démarré avec succès!");
         LOGGER.info("Endpoints disponibles:");
@@ -97,17 +98,17 @@ public class RestServer {
         LOGGER.info("  * " + serverUrl + "/messages (GET, POST)");
         LOGGER.info("Appuyez sur Entrée pour arrêter le serveur...");
         
-        // Aussi afficher à la console standard pour être sûr que l'utilisateur le voit
+        
         System.out.println("=====================================================");
         System.out.println("| Serveur REST démarré avec succès sur " + BASE_URI + " |");
         System.out.println("| Appuyez sur Entrée pour arrêter le serveur...         |");
         System.out.println("=====================================================");
         
         try {
-            // Attendre que l'utilisateur appuie sur Entrée
+           
             System.in.read();
             
-            // Arrêter le serveur
+           
             server.shutdownNow();
             LOGGER.info("Serveur arrêté.");
             System.out.println("Serveur arrêté.");
